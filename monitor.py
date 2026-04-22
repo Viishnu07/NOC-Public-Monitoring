@@ -9,12 +9,12 @@ from urllib.parse import urlparse
 # Suppress InsecureRequestWarning when verify=False is used
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-import os
+
 
 # Paths
 ROOT_DIR = Path(__file__).parent
 # In Docker, we can override this to point to the served directory
-PUBLIC_DIR = Path(os.getenv("MONITOR_OUTPUT_DIR", ROOT_DIR / "public"))
+PUBLIC_DIR = ROOT_DIR / "public"
 URLS_FILE = ROOT_DIR / "urls.json"
 STATUS_FILE = PUBLIC_DIR / "status.json"
 HISTORY_FILE = PUBLIC_DIR / "history.json"
@@ -77,11 +77,16 @@ def check_http(url, timeout=15):
 def main():
     PUBLIC_DIR.mkdir(exist_ok=True)
     
-    with open(URLS_FILE, 'r') as f:
-        targets = json.load(f)
+    print(f"[{datetime.utcnow().isoformat() + 'Z'}] Starting NOC monitor checks...")
+    
+    try:
+        with open(URLS_FILE, 'r') as f:
+            targets = json.load(f)
+    except Exception as e:
+        print(f"Error reading {URLS_FILE}: {e}")
+        return
         
     results = []
-    # Local time display would be better suited for frontend, but we'll store UTC
     current_time = datetime.utcnow().isoformat() + "Z"
     
     for target in targets:
@@ -128,6 +133,8 @@ def main():
         
     with open(HISTORY_FILE, 'w') as f:
         json.dump(history, f, indent=2)
+        
+    print("Checks complete. Exiting...")
         
 if __name__ == "__main__":
     main()

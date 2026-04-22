@@ -4,5 +4,5 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/NOC-Public-Monitoring/', // Explicit repo name for GitHub Pages
+  base: './', // Ensures assets are loaded smoothly on GitHub Pages sub-directories
 })
