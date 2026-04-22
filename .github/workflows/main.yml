@@ -1,18 +1,24 @@
-name: NOC Monitor Check
+name: NOC Bot & Deploy
 
 on:
+  push:
+    branches: ["main", "master"]
   schedule:
-    # Explicitly shifted away from the 0/5/10/15 minute global bottlenecks
-    # Running exactly at: 4, 11, 17, 24, 31, 38, 44, 51, 58 minutes past the hour
     - cron: '4,11,17,24,31,38,44,51,58 * * * *'
   workflow_dispatch:
 
-jobs:
-  monitor:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
+permissions:
+  contents: write
+  pages: write
+  id-token: write
 
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  monitor-and-deploy:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -22,7 +28,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install dependencies
+      - name: Install Python dependencies
         run: |
           sudo apt-get update && sudo apt-get install -y mtr-tiny traceroute
           python -m pip install --upgrade pip
@@ -31,10 +37,34 @@ jobs:
       - name: Run Monitor
         run: python monitor.py
 
-      - name: Commit and push changes
+      - name: Commit and push data
         run: |
           git config --global user.name "NOC Bot"
           git config --global user.email "bot@noc.local"
           git add public/status.json public/history.json
           git commit -m "Update NOC status data" || echo "No changes to commit"
           git push
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Install NPM dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
