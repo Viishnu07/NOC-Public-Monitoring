@@ -4,7 +4,13 @@ on:
   # Deploy whenever the monitor script updates the data on the main branch
   push:
     branches: ["main", "master"]
-  
+    
+  # Deploy automatically after the bot runs
+  workflow_run:
+    workflows: ["NOC Monitor Check"]
+    types:
+      - completed
+      
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
