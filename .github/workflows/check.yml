@@ -13,9 +13,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "noc-bot-monitoring"
-  # This MUST be true for high-frequency bots to prevent 
-  # "Deployment in progress" errors.
+  group: "pages"
   cancel-in-progress: true
 
 jobs:
