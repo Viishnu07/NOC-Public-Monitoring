@@ -14,7 +14,9 @@ permissions:
 
 concurrency:
   group: "noc-bot-monitoring"
-  cancel-in-progress: false
+  # This MUST be true for high-frequency bots to prevent 
+  # "Deployment in progress" errors.
+  cancel-in-progress: true
 
 jobs:
   monitor-and-deploy:
