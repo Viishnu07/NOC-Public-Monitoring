@@ -14,7 +14,8 @@ permissions:
 
 concurrency:
   group: "pages"
-  cancel-in-progress: false
+  # CHANGED: Setting this to true cancels older, stuck jobs
+  cancel-in-progress: true
 
 jobs:
   monitor-and-deploy:
@@ -23,7 +24,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Required for git pull --rebase to work correctly
+          fetch-depth: 0 
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -43,15 +44,19 @@ jobs:
         run: |
           git config --global user.name "NOC Bot"
           git config --global user.email "bot@noc.local"
+          
+          # NEW: Reset to origin/main to ensure we start from the absolute latest
+          # This prevents merge conflicts.
+          git fetch origin main
+          git reset --hard origin/main
+          
+          # Add the changes
           git add public/status.json public/history.json
           
-          # Commit changes if they exist
+          # Commit only if there are changes
           git commit -m "Update NOC status data" || echo "No changes to commit"
           
-          # Pull latest changes from remote to avoid rejection errors
-          git pull --rebase origin main
-          
-          # Push the updated branch
+          # Push the changes
           git push
 
       - name: Setup Node
