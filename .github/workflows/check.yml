@@ -43,12 +43,10 @@ jobs:
         run: |
           git config --global user.name "NOC Bot"
           git config --global user.email "bot@noc.local"
-          # Fetch and reset to ensure a clean state before committing
-          git fetch origin main
-          git reset --hard origin/main
           git add public/status.json public/history.json
           # Commit only if there are changes
           git commit -m "Update NOC status data" || echo "No changes to commit"
+          git pull --rebase origin main
           # Push the changes
           git push
 
