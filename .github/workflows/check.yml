@@ -22,6 +22,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Required for git pull --rebase to work correctly
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -42,7 +44,14 @@ jobs:
           git config --global user.name "NOC Bot"
           git config --global user.email "bot@noc.local"
           git add public/status.json public/history.json
+          
+          # Commit changes if they exist
           git commit -m "Update NOC status data" || echo "No changes to commit"
+          
+          # Pull latest changes from remote to avoid rejection errors
+          git pull --rebase origin main
+          
+          # Push the updated branch
           git push
 
       - name: Setup Node
