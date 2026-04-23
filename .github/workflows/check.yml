@@ -13,9 +13,8 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "pages"
-  # CHANGED: Setting this to true cancels older, stuck jobs
-  cancel-in-progress: true
+  group: "noc-bot-monitoring"
+  cancel-in-progress: false
 
 jobs:
   monitor-and-deploy:
@@ -24,7 +23,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -44,18 +43,12 @@ jobs:
         run: |
           git config --global user.name "NOC Bot"
           git config --global user.email "bot@noc.local"
-          
-          # NEW: Reset to origin/main to ensure we start from the absolute latest
-          # This prevents merge conflicts.
+          # Fetch and reset to ensure a clean state before committing
           git fetch origin main
           git reset --hard origin/main
-          
-          # Add the changes
           git add public/status.json public/history.json
-          
           # Commit only if there are changes
           git commit -m "Update NOC status data" || echo "No changes to commit"
-          
           # Push the changes
           git push
 
